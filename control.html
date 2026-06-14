@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTC Commission | Admin Control</title>
+    <style>
+        :root { 
+            --college-navy: #002147; 
+            --college-gold: #FFB81C; 
+            --bg-light: #F4F7F6; 
+            --text-main: #333333;
+            --text-muted: #64748B; 
+            --success-green: #10B981;
+            --danger-red: #EF4444;
+            --warning-orange: #F59E0B;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg-light); display: flex; min-height: 100vh; color: var(--text-main); }
+
+        /* Sidebar */
+        aside { 
+            width: 260px; background: #0F172A; color: white; 
+            padding: 2rem 1.5rem; position: fixed; height: 100%; 
+            display: flex; flex-direction: column; transition: 0.3s; z-index: 1000; 
+        }
+        .logo { font-size: 1.1rem; font-weight: 800; color: white; margin-bottom: 2.5rem; display: block; text-align: center; letter-spacing: 1px; border-bottom: 1px solid #334155; padding-bottom: 1rem;}
+        .logo span { color: var(--danger-red); }
+        
+        .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+        .nav-item { 
+            padding: 0.85rem 1rem; cursor: pointer; color: #94A3B8; 
+            display: block; transition: all 0.2s ease; border-radius: 6px; font-weight: 500; font-size: 0.95rem;
+        }
+        .nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-item.active { color: white; background: var(--college-navy); border-left: 3px solid var(--danger-red); }
+        .nav-bottom { margin-top: auto; border-top: 1px solid #334155; padding-top: 1rem; }
+
+        /* Main Container */
+        main { flex: 1; padding: 3rem 4rem; margin-left: 260px; max-width: 100vw; }
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Metrics & Cards */
+        .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
+        .header-row h1 { font-size: 2.2rem; color: var(--college-navy); margin-bottom: 0.5rem; }
+        
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .metric-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .metric-title { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .metric-value { font-size: 2.5rem; font-weight: 800; color: var(--college-navy); }
+
+        .card { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 2rem; }
+        .card h3 { color: var(--college-navy); margin-bottom: 1.5rem; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Buttons & Forms */
+        .btn { padding: 0.8rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; justify-content: center;}
+        .btn-primary { background: var(--college-navy); color: white; }
+        .btn-primary:hover { background: #001833; }
+        .btn-success { background: var(--success-green); color: white; }
+        .btn-danger { background: var(--danger-red); color: white; }
+        .btn-warning { background: var(--warning-orange); color: white; }
+        .btn-outline { background: transparent; border: 1px solid #CBD5E1; color: var(--text-main); }
+        .btn-outline:hover { background: #F1F5F9; }
+
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; color: var(--college-navy); margin-bottom: 0.5rem; }
+        .form-control { width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 1rem; outline: none; transition: border-color 0.2s; background: white; }
+        .form-control:focus { border-color: var(--college-navy); box-shadow: 0 0 0 3px rgba(0,33,71,0.1); }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+
+        /* Candidate Grid */
+        .cand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .cand-card { background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; position: relative; overflow: hidden; }
+        .cand-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+        .cand-info h4 { font-size: 1.05rem; color: var(--college-navy); margin-bottom: 0.2rem; }
+        .cand-info p { font-size: 0.8rem; color: var(--text-muted); }
+        .cand-actions { position: absolute; right: 10px; top: 10px; display: flex; gap: 5px; }
+        .action-btn { background: #F1F5F9; border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .action-btn:hover { background: #E2E8F0; color: var(--college-navy); }
+
+        /* Modals & Toasts */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.9); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(5px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: white; padding: 2.5rem; border-radius: 12px; width: 90%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text-muted); }
+
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #0F172A; color: white; padding: 1rem 1.5rem; border-radius: 6px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; transform: translateY(100px); opacity: 0; transition: all 0.4s ease; border-left: 4px solid var(--danger-red); }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* Status Banner */
+        .status-banner { padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 2rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+        .status-UPCOMING { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
+        .status-LIVE { background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; }
+        .status-PAUSED { background: #FEE2E2; color: #EF4444; border: 1px solid #FECACA; }
+        .status-CLOSED { background: #ECFDF5; color: #10B981; border: 1px solid #A7F3D0; }
+
+        /* Mobile */
+        .mobile-menu-btn { display: none; position: fixed; top: 15px; left: 15px; z-index: 1001; background: #0F172A; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+        @media (max-width: 900px) {
+            main { margin-left: 0; padding: 5rem 1.2rem 2rem 1.2rem; }
+            aside { transform: translateX(-100%); }
+            aside.active { transform: translateX(0); }
+            .mobile-menu-btn { display: block; }
+            .header-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SECURE LOGIN OVERLAY -->
+    <div class="modal-overlay active" id="adminLoginModal" style="background: var(--college-navy);">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛡️</div>
+            <h2 style="color: var(--college-navy); margin-bottom: 0.5rem;">Commission Gateway</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Please enter the master cryptographic key to access the control panel.</p>
+            
+            <div class="form-group">
+                <input type="password" id="adminSecretKey" class="form-control" placeholder="Enter Admin Secret..." style="text-align: center; letter-spacing: 2px;">
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="authenticateAdmin()">Authenticate</button>
+        </div>
+    </div>
+
+    <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('active')">☰ Panel</button>
+    
+    <aside id="sidebar">
+        <span class="logo">RTC <span>COMMISSION</span></span>
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="showView('command', this)">Command Center</div>
+            <div class="nav-item" onclick="showView('candidates', this)">Candidate Matrix</div>
+        </div>
+        <div class="nav-bottom">
+            <div class="nav-item" onclick="refreshAdminData()" style="color: var(--success-green);">⟳ Sync Database</div>
+            <div class="nav-item" style="color: var(--danger-red); margin-top: 0.5rem;" onclick="logoutAdmin()">Log Out</div>
+        </div>
+    </aside>
+
+    <main id="app-container" style="display: none;">
+        
+        <!-- COMMAND CENTER VIEW -->
+        <section id="command" class="view active">
+            <div class="header-row">
+                <div>
+                    <h1>Command Center</h1>
+                    <p style="color: var(--text-muted);">Global oversight and election state management.</p>
+                </div>
+            </div>
+
+            <div id="masterStatusBanner" class="status-banner status-UPCOMING">
+                <span id="bannerText">ELECTION STATUS: SYNCING...</span>
+            </div>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Registered Electorate</div>
+                    <div class="metric-value" id="statRegistered">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Verified Votes Cast</div>
+                    <div class="metric-value" id="statCast">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Voter Turnout</div>
+                    <div class="metric-value" id="statTurnout">0%</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                
+                <!-- Master State Controls -->
+                <div class="card">
+                    <h3>Election State Override</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Changing the state instantly updates all student dashboards and unlocks/locks the voting booths.</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <button class="btn btn-success" onclick="updateElectionState('LIVE')">▶ START ELECTION (LIVE)</button>
+                        <button class="btn btn-warning" onclick="updateElectionState('PAUSED')">⏸ PAUSE ELECTION</button>
+                        <button class="btn btn-danger" onclick="updateElectionState('CLOSED')">⏹ CLOSE POLLS & CERTIFY</button>
+                    </div>
+                </div>
+
+                <!-- Noticecaster -->
+                <div class="card">
+                    <h3>Commission Noticecaster</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Push live text updates to the noticeboard on the student dashboard.</p>
+                    
+                    <div class="form-group">
+                        <textarea id="noticeInput" class="form-control" placeholder="E.g., Polls are closing in 30 minutes!"></textarea>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="pushNotice()">Broadcast Update</button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CANDIDATE MANAGEMENT VIEW -->
+        <section id="candidates" class="view">
+            <div class="header-row">
+                <div>
+                    <h1>Candidate Matrix</h1>
+                    <p style="color: var(--text-muted);">Manage electoral candidates and digital manifestos.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openCandidateModal()">+ Add Candidate</button>
+            </div>
+
+            <div class="cand-grid" id="adminCandidateGrid">
+                <p style="color: var(--text-muted);">Loading registry...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Candidate Form Modal -->
+    <div class="modal-overlay" id="candidateFormModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('candidateFormModal')">&times;</button>
+            <h2 id="candModalTitle" style="color: var(--college-navy); margin-bottom: 1.5rem;">Add Candidate</h2>
+            
+            <input type="hidden" id="candId">
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="candName" class="form-control" placeholder="Official candidate name">
+            </div>
+            
+            <div class="form-group">
+                <label>Position</label>
+                <input type="text" id="candPos" class="form-control" placeholder="e.g., President, Block 1 Rep">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Course</label>
+                    <select id="candCourse" class="form-control">
+                        <option value="KRCHN">KRCHN</option>
+                        <option value="Nurse Aid">Nurse Aid</option>
+                        <option value="Perioperative Theatre Technology">Perioperative Theatre Technology</option>
+                        <option value="All (Executive)">All (Executive)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Block</label>
+                    <select id="candBlock" class="form-control">
+                        <option value="Introductory Block">Introductory Block</option>
+                        <option value="Block 1">Block 1</option>
+                        <option value="Block 2">Block 2</option>
+                        <option value="Block 3 & 4">Block 3 & 4</option>
+                        <option value="Block 5">Block 5</option>
+                        <option value="All (Executive)">All (Executive)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="text" id="candImg" class="form-control" placeholder="https://link-to-photo.jpg">
+            </div>
+
+            <div class="form-group">
+                <label>Manifesto (Plain Text)</label>
+                <textarea id="candManifesto" class="form-control" placeholder="Candidate's campaign promises..."></textarea>
+            </div>
+
+            <button class="btn btn-success" style="width: 100%; margin-top: 1rem;" onclick="saveCandidate()" id="saveCandBtn">Save Candidate Record</button>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚠️</div>
+            <h3 style="color: var(--danger-red); margin-bottom: 0.5rem;">Purge Record?</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">This action will permanently remove the candidate from the active ballot matrix.</p>
+            
+            <input type="hidden" id="deleteCandId">
+            <button class="btn btn-danger" style="width: 100%; margin-bottom: 0.8rem;" onclick="executeDelete()">Yes, Purge Record</button>
+            <button class="btn btn-outline" style="width: 100%;" onclick="closeModal('deleteConfirmModal')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         CUSTOM ACTION CONFIRMATION MODAL
+         ========================================== -->
+    <div class="modal-overlay" id="actionConfirmModal">
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;" id="confirmModalIcon">⚠️</div>
+            <h3 style="color: var(--college-navy); margin-bottom: 0.5rem;" id="confirmModalTitle">Confirm Action</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;" id="confirmModalDesc">Are you sure you want to proceed with this state override?</p>
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('actionConfirmModal')">Cancel</button>
+                <button class="btn" style="flex: 1;" id="confirmModalSubmitBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="control.js"></script>
+</body>
+</html>
