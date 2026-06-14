@@ -82,6 +82,17 @@ window.showView = function(viewId, element) {
         }
     }
 
+    // --- PROFILE METADATA SYNC ---
+    if (viewId === 'profile') {
+        const token = sessionStorage.getItem('rtc_voter_token');
+        const displayKey = document.getElementById('sessionKeyDisplay');
+        if (token && displayKey) {
+            // Display a masked version of the token for a technical "hacker" feel
+            const masked = token.substring(0, 8) + '...' + token.substring(token.length - 8);
+            displayKey.innerText = masked;
+        }
+    }
+
     // Hide all views and remove active states
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -592,8 +603,6 @@ window.fetchAndRenderResults = async function() {
 function renderLeaderboard(resultsData) {
     const container = document.getElementById('resultsContainer');
     let html = '';
-
-    // resultsData format expected: { "President": [{name, votes, percentage, img}], "Secretary": [...] }
     
     const positions = Object.keys(resultsData);
     
@@ -603,7 +612,6 @@ function renderLeaderboard(resultsData) {
     }
 
     positions.forEach(pos => {
-        // Demographic masking logic: Only show Class Rep results if they match the user's block
         const isRep = pos.toLowerCase().includes('rep') || pos.toLowerCase().includes('representative');
         if (isRep && userProfile.block) {
             // We need to check if ANY candidate in this array belongs to the user's block
@@ -619,17 +627,12 @@ function renderLeaderboard(resultsData) {
                 </div>
         `;
 
-        // Sort candidates by votes descending
         const candidates = resultsData[pos].sort((a, b) => b.votes - a.votes);
-        
-        // Find max votes for progress bar scaling relative to the leader
         const maxVotes = candidates.length > 0 ? candidates[0].votes : 1;
 
         candidates.forEach((c, index) => {
-            // Give a subtle 'leader' styling to whoever is currently in first place
             const isLeader = (index === 0 && c.votes > 0) ? 'leader' : '';
             
-            // Look up candidate image from global memory
             const globalData = globalCandidates.find(g => g.id === c.id);
             const imgUrl = globalData ? globalData.img : 'https://via.placeholder.com/150';
 
@@ -657,7 +660,6 @@ function renderLeaderboard(resultsData) {
 
     container.innerHTML = html;
 
-    // Trigger animations for the progress bars smoothly after injection
     setTimeout(() => {
         const bars = container.querySelectorAll('.result-bar-fill');
         bars.forEach(bar => {
@@ -668,7 +670,61 @@ function renderLeaderboard(resultsData) {
 
 
 /* =========================================
-   8. OMNI-FETCH & HOME SECTION LOGIC
+   8. SETTINGS & LOCAL STORAGE ENGINE
+   ========================================= */
+
+window.toggleTheme = function() {
+    const isDark = document.getElementById('themeToggle').checked;
+    
+    if (isDark) {
+        document.documentElement.style.setProperty('--bg-light', '#0F172A');
+        document.documentElement.style.setProperty('--college-white', '#1E293B');
+        document.documentElement.style.setProperty('--text-main', '#F8FAFC');
+        document.documentElement.style.setProperty('--text-muted', '#94A3B8');
+        // Override cards explicitly for dark mode
+        const style = document.createElement('style');
+        style.id = 'darkModeOverride';
+        style.innerHTML = `
+            .card, .c-card, .ballot-category, .ballot-card, .results-category, #mobileCandidateFilter, .modal-content, #resultsSealedState {
+                background: #1E293B !important;
+                border-color: #334155 !important;
+                color: #F8FAFC !important;
+            }
+            .card h3, .c-card h4, .ballot-card h4, .results-category-title, .settings-group label {
+                color: #F8FAFC !important;
+            }
+            #mobileCandidateFilter { color: #F8FAFC !important; }
+            .settings-group label { background: #0F172A !important; border-color: #334155 !important; }
+        `;
+        document.head.appendChild(style);
+        localStorage.setItem('rtc_theme', 'dark');
+    } else {
+        document.documentElement.style.setProperty('--bg-light', '#F4F7F6');
+        document.documentElement.style.setProperty('--college-white', '#FFFFFF');
+        document.documentElement.style.setProperty('--text-main', '#333333');
+        document.documentElement.style.setProperty('--text-muted', '#64748B');
+        
+        const override = document.getElementById('darkModeOverride');
+        if (override) override.remove();
+        
+        localStorage.setItem('rtc_theme', 'light');
+    }
+};
+
+// Check theme on load
+function initTheme() {
+    const savedTheme = localStorage.getItem('rtc_theme');
+    if (savedTheme === 'dark') {
+        const toggle = document.getElementById('themeToggle');
+        if (toggle) {
+            toggle.checked = true;
+            toggleTheme();
+        }
+    }
+}
+
+/* =========================================
+   9. OMNI-FETCH & HOME SECTION LOGIC
    ========================================= */
 
 async function fetchLiveDashboardData(admission) {
@@ -803,8 +859,9 @@ async function initHomeSection() {
 }
 
 /* =========================================
-   9. INITIALIZE SYSTEM
+   10. INITIALIZE SYSTEM
    ========================================= */
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initHomeSection();
 });
