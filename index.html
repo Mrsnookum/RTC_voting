@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Cleaned viewport to fix console errors -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTC | Official Electoral Portal</title>
+    
+    <!-- AOS Animation Library CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           RTC INSTITUTIONAL VARIABLES
+           ========================================= */
+        :root {
+            --college-navy: #002147;
+            --college-gold: #FFB81C;
+            --college-white: #FFFFFF;
+            --text-main: #333333;
+            --text-muted: #555555;
+            --bg-light: #F4F7F6;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           INTERACTIVE NAVBAR & MENU
+           ========================================= */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--college-navy);
+            padding: 1rem 5%;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: padding var(--transition-speed);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo-area {
+            color: var(--college-white);
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        .logo-area span { color: var(--college-gold); }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: var(--college-white);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color var(--transition-speed);
+        }
+
+        .nav-menu a:hover { color: var(--college-gold); }
+
+        .btn-login {
+            background: var(--college-gold);
+            color: var(--college-navy);
+            padding: 0.6rem 1.8rem;
+            border-radius: 4px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 184, 28, 0.4);
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--college-gold);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* Mobile Menu Overrides */
+        @media (max-width: 900px) {
+            .mobile-toggle { display: block; }
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--college-navy);
+                padding: 2rem 5%;
+                gap: 1.5rem;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 10px 10px rgba(0,0,0,0.2);
+            }
+            .nav-menu.active { display: flex; }
+            .desktop-btn { display: none; }
+        }
+
+        /* =========================================
+           MOBILE-OPTIMIZED HERO CAROUSEL
+           ========================================= */
+        .hero {
+            position: relative;
+            height: 100vh;
+            min-height: 500px;
+            margin-top: 60px;
+            overflow: hidden;
+            background: var(--college-navy);
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            width: 300%;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .slide {
+            width: 33.333%;
+            height: 100%;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 5%;
+        }
+
+        .slide:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop'); }
+        .slide:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop'); }
+        .slide:nth-child(3) { background-image: url('https://images.unsplash.com/photo-1577415124269-3111151d4e48?q=80&w=2070&auto=format&fit=crop'); }
+
+        .slide-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 33, 71, 0.75); 
+            z-index: 1;
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 2;
+            color: var(--college-white);
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .slide-content h1 {
+            font-size: clamp(2.2rem, 7vw, 4rem);
+            margin-bottom: 1rem;
+            line-height: 1.15;
+            font-weight: 900;
+        }
+
+        .slide-content p {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            margin-bottom: 2.5rem;
+            color: #E0E0E0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* =========================================
+           IMAGE-RICH SPLIT SECTIONS (UNIVERSAL LAYOUT)
+           ========================================= */
+        .split-section {
+            padding: 5rem 5%;
+            background: var(--college-white);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .split-section.alt { background: var(--bg-light); }
+
+        .split-image {
+            width: 100%;
+            height: 420px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .split-image.img-about { background-image: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop'); }
+        .split-image.img-guide { background-image: url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?q=80&w=2070&auto=format&fit=crop'); }
+        .split-image.img-eligibility { background-image: url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop'); }
+        .split-image.img-faq { background-image: url('https://images.unsplash.com/photo-1557200134-90327ee9fafa?q=80&w=2070&auto=format&fit=crop'); }
+
+        .section-tag {
+            color: var(--college-gold);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .split-content h2 {
+            color: var(--college-navy);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        /* =========================================
+           CALL TO ACTION BUTTONS
+           ========================================= */
+        .section-cta-btn {
+            display: inline-block;
+            background: var(--college-navy);
+            color: var(--college-white);
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all var(--transition-speed);
+            border: 2px solid var(--college-navy);
+            margin-top: 1.5rem;
+            cursor: pointer;
+        }
+
+        .section-cta-btn:hover {
+            background: transparent;
+            color: var(--college-navy);
+        }
+
+        .section-cta-btn.gold-accent {
+            background: var(--college-gold);
+            color: var(--college-navy);
+            border-color: var(--college-gold);
+        }
+
+        .section-cta-btn.gold-accent:hover {
+            background: transparent;
+            color: var(--college-navy);
+        }
+
+        /* =========================================
+           MOBILE-OPTIMIZED TABS
+           ========================================= */
+        .tabs-container {
+            width: 100%;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .tabs-nav {
+            display: flex;
+            flex-wrap: wrap; 
+            background: var(--bg-light);
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 120px; 
+            background: none;
+            border: none;
+            padding: 1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .tab-btn.active {
+            background: var(--college-white);
+            color: var(--college-navy);
+            border-bottom: 3px solid var(--college-gold);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            background: var(--college-white);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================================
+           FAQ ACCORDION COMPONENT
+           ========================================= */
+        .accordion-wrapper {
+            margin-top: 1.5rem;
+        }
+
+        details {
+            background: var(--college-white);
+            margin-bottom: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 1.2rem;
+            font-weight: 700;
+            color: var(--college-navy);
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '+'; color: var(--college-gold); font-size: 1.3rem; }
+        details[open] summary::after { content: '−'; }
+
+        details p {
+            padding: 0 1.2rem 1.2rem 1.2rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* =========================================
+           INSTITUTIONAL FOOTER
+           ========================================= */
+        footer {
+            background: var(--college-navy);
+            color: #94A3B8;
+            text-align: center;
+            padding: 3rem 5%;
+            font-size: 0.95rem;
+            border-top: 4px solid var(--college-gold);
+        }
+
+        /* =========================================
+           MOBILE RESPONSIVENESS OVERRIDES
+           ========================================= */
+        @media (max-width: 900px) {
+            .split-section {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+                padding: 4rem 5%;
+            }
+            .split-image { height: 250px; }
+            .order-mobile-2 { order: 2; }
+            .order-mobile-1 { order: 1; }
+            .split-content h2 { font-size: 2rem; }
+        }
+
+        /* =========================================
+           AUTH MODAL & DUAL-STATE STYLES
+           ========================================= */
+        .auth-modal-overlay, .success-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 33, 71, 0.85);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 2000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .auth-modal-overlay.active, .success-modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .auth-modal-content, .success-modal-content {
+            background: var(--college-white); padding: 2.5rem; border-radius: 12px;
+            width: 90%; max-width: 450px; position: relative; max-height: 90vh; overflow-y: auto;
+            transform: translateY(50px); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .auth-modal-overlay.active .auth-modal-content, .success-modal-overlay.active .success-modal-content { transform: translateY(0); }
+        
+        .close-modal {
+            position: absolute; top: 15px; right: 15px; background: none; border: none;
+            font-size: 1.8rem; color: var(--text-muted); cursor: pointer;
+        }
+        
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .auth-header h3 { color: var(--college-navy); font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .auth-header p { color: var(--text-muted); font-size: 0.95rem; }
+        
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--college-navy); margin-bottom: 0.4rem; text-transform: uppercase; }
+        .input-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 1rem; transition: border-color 0.3s; }
+        .input-group input:focus { outline: none; border-color: var(--college-gold); }
+        
+        .auth-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; }
+        .auth-footer strong { color: var(--college-navy); transition: color 0.3s; }
+        .auth-footer strong:hover { color: var(--college-gold); }
+
+        /* Hide views by default */
+        .auth-view { display: none; }
+        .auth-view.active { display: block; animation: fadeIn 0.4s ease; }
+
+        /* Custom Success Modal Styling */
+        .success-icon { font-size: 4rem; color: #10B981; margin-bottom: 1rem; }
+        .success-modal-content { text-align: center; }
+
+        /* TOAST CONTAINER */
+        #toast-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--college-navy);
+            color: var(--college-white);
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            border-left: 4px solid var(--college-gold);
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- INTERACTIVE NAVIGATION -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo-area">RTC <span>Portal</span></a>
+            
+            <button class="mobile-toggle" onclick="document.getElementById('navMenu').classList.toggle('active')">☰</button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#about" onclick="document.getElementById('navMenu').classList.remove('active')">About</a></li>
+                <li><a href="#guidelines" onclick="document.getElementById('navMenu').classList.remove('active')">Guidelines</a></li>
+                <li><a href="#eligibility" onclick="document.getElementById('navMenu').classList.remove('active')">Eligibility</a></li>
+                <li><a href="#faq" onclick="document.getElementById('navMenu').classList.remove('active')">FAQ</a></li>
+                <li style="margin-top: 1rem;" class="mobile-only">
+                    <button class="btn-login triggerAuth" style="width: 100%;">Secure Login</button>
+                </li>
+            </ul>
+
+            <button class="btn-login desktop-btn triggerAuth" id="authBtn">Secure Login</button>
+        </div>
+    </nav>
+
+    <!-- PROFESSIONAL HERO CAROUSEL -->
+    <header class="hero">
+        <div class="carousel-track" id="carouselTrack">
+            <div class="slide">
+                <div class="slide-overlay"></div>
+                <div class="slide-content">
+                    <h1>RAM Training College Elections</h1>
+                    <p>A zero-latency, cryptographically verified infrastructure designed to handle campus-wide elections with absolute transparency.</p>
+                    <button class="btn-login triggerAuth" style="margin-top: 1rem; padding: 1rem 2rem; font-size: 1.1rem;">Access Voting Dashboard</button>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-overlay"></div>
+                <div class="slide-content">
+                    <h1>Decoupled Ballot Anonymity</h1>
+                    <p>Your institutional eligibility and your candidate selections are processed as separate events, guaranteeing a 100% secret ballot.</p>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-overlay"></div>
+                <div class="slide-content">
+                    <h1>Automated Integrity Protocols</h1>
+                    <p>Server-side concurrency locks and rate-limiting actively neutralize duplicate submissions and proxy voting attempts.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ABOUT SECTION -->
+    <section class="split-section" id="about">
+        <div class="split-image img-about" data-aos="fade-right"></div>
+        <div class="split-content" data-aos="fade-left">
+            <span class="section-tag">About The Commission</span>
+            <h2>Ensuring Democratic Integrity at RTC</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">The RAM Training College Electoral Commission is committed to overseeing a fair, transparent, and completely secure democratic process for the student body.</p>
+            <p style="color: var(--text-muted);">By migrating to a fully decentralized, serverless architecture, we have eliminated the vulnerabilities of paper ballots, ensuring instant, verifiable, and tamper-proof results for all future campus leadership.</p>
+            <a href="#eligibility" class="section-cta-btn">View Election Mandate</a>
+        </div>
+    </section>
+
+    <!-- GUIDELINES SECTION -->
+    <section class="split-section alt" id="guidelines">
+        <div class="split-content order-mobile-2" data-aos="fade-right">
+            <span class="section-tag">Electoral Process</span>
+            <h2>Official Voting Guidelines</h2>
+            
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-target="tab1">1. Verification</button>
+                    <button class="tab-btn" data-target="tab2">2. Balloting</button>
+                    <button class="tab-btn" data-target="tab3">3. Ledger</button>
+                </div>
+                
+                <div class="tab-content active" id="tab1">
+                    <h3 style="color: var(--college-navy); margin-bottom: 10px;">Account Access</h3>
+                    <p>On polling day, log in using your official RTC Admission Number. The system actively cross-references the live academic registry to grant a secure session token.</p>
+                </div>
+                <div class="tab-content" id="tab2">
+                    <h3 style="color: var(--college-navy); margin-bottom: 10px;">Casting Your Vote</h3>
+                    <p>The dashboard interface structurally prevents selecting multiple candidates for a single position. You may leave a position blank if you wish to abstain.</p>
+                </div>
+                <div class="tab-content" id="tab3">
+                    <h3 style="color: var(--college-navy); margin-bottom: 10px;">Finalizing the Ledger</h3>
+                    <p>Upon submission, your ballot is cryptographically hashed. Your identity token and vote payload are completely decoupled to guarantee anonymity.</p>
+                </div>
+            </div>
+            <a href="#" class="section-cta-btn gold-accent triggerAuth">Get Session Token</a>
+        </div>
+        <div class="split-image img-guide order-mobile-1" data-aos="fade-left"></div>
+    </section>
+
+    <!-- ELIGIBILITY SECTION -->
+    <section class="split-section" id="eligibility">
+        <div class="split-image img-eligibility" data-aos="fade-right"></div>
+        <div class="split-content" data-aos="fade-left">
+            <span class="section-tag">Qualifications</span>
+            <h2>Electoral Requirements</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Understanding the criteria necessary to participate in the RTC electoral process.</p>
+            
+            <ul style="list-style-position: inside; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; display: flex; flex-direction: column; gap: 12px;">
+                <li><strong>Voter Standing:</strong> Must be an active, fully cleared student for the current academic term. Suspended accounts will be flagged and denied access.</li>
+                <li><strong>Candidate Clearance:</strong> Individuals intending to run for office must meet specific academic thresholds and submit manifestos.</li>
+                <li><strong>System Lockdown:</strong> One citizen, one device session lock. Any concurrent double-login attempts automatically revoke token validity.</li>
+            </ul>
+
+            <a href="#" class="section-cta-btn triggerAuth">Verify Voter Profile</a>
+        </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section class="split-section alt" id="faq">
+        <div class="split-content order-mobile-2" data-aos="fade-right">
+            <span class="section-tag">Support</span>
+            <h2>Frequently Asked Questions</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Everything you need to know about identity protection, cryptographic hashing, and registration alignment.</p>
+            
+            <div class="accordion-wrapper">
+                <details>
+                    <summary>Is my vote truly anonymous?</summary>
+                    <p>Yes. The RTC portal uses decoupled data processing. When you vote, the system verifies your Admission Number in one database, but saves your actual vote in a completely separate, anonymous ledger.</p>
+                </details>
+                <details>
+                    <summary>What happens if I try to vote twice?</summary>
+                    <p>The system utilizes aggressive server-side rate limiting and status checks. Once you submit a ballot, your profile is permanently locked for the duration of the election.</p>
+                </details>
+                <details>
+                    <summary>What if my Admission Number doesn't work?</summary>
+                    <p>If you receive an "unauthorized" error, it means your details are not synced with the current active academic registry. You must contact the RTC Registrar's office to update your status.</p>
+                </details>
+                <details>
+                    <summary>Can I change my vote after submitting?</summary>
+                    <p>No. For security and integrity reasons, once you confirm and submit your ballot, the cryptographic hash is sealed and recorded. It cannot be altered or retrieved.</p>
+                </details>
+            </div>
+
+            <a href="mailto:support@rtc.edu" class="section-cta-btn">Contact Helpdesk</a>
+        </div>
+        <div class="split-image img-faq order-mobile-1" data-aos="fade-left"></div>
+    </section>
+
+    <!-- INSTITUTIONAL FOOTER -->
+    <footer>
+        <p>&copy; 2026 RAM Training College (RTC) Electoral Commission. All rights reserved.</p>
+        <p style="margin-top: 0.5rem; color: #64748B;">Built on secure, decentralized serverless technology.</p>
+    </footer>
+
+    <!-- AUTHENTICATION MODAL (DUAL STATE) -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal-content">
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+            
+            <!-- REGISTER VIEW -->
+            <div id="registerView" class="auth-view active">
+                <div class="auth-header">
+                    <h3>Student Registration</h3>
+                    <p>Create your secure electoral identity.</p>
+                </div>
+                <form id="registerForm">
+                    <div class="input-group">
+                        <label>Admission Number</label>
+                        <input type="text" id="regAdmission" placeholder="e.g. RTC/001/24" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label>College Email</label>
+                        <input type="email" id="regEmail" placeholder="student@rtc.edu" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="regPhone" placeholder="07XX XXX XXX" required autocomplete="tel">
+                    </div>
+                    <div class="input-group">
+                        <label>Secure Password</label>
+                        <input type="password" id="regPassword" placeholder="Minimum 8 characters" required minlength="8" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn-login" style="width: 100%; margin-top: 1rem;" id="submitRegBtn">Register Voter Account</button>
+                </form>
+                <div class="auth-footer">
+                    <span id="toggleToLogin">Already registered? <strong>Log in here</strong></span>
+                </div>
+            </div>
+
+            <!-- LOGIN VIEW -->
+            <div id="loginView" class="auth-view">
+                <div class="auth-header">
+                    <h3>Secure Login</h3>
+                    <p>Access the voting dashboard.</p>
+                </div>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label>Admission Number</label>
+                        <input type="text" id="loginAdmission" placeholder="e.g. RTC/001/24" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-login" style="width: 100%; margin-top: 1rem;" id="submitLoginBtn">Authenticate Identity</button>
+                </form>
+                <div class="auth-footer">
+                    <span id="toggleToRegister">Don't have an account? <strong>Register here</strong></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CUSTOM SUCCESS MODAL -->
+    <div class="success-modal-overlay" id="successModal">
+        <div class="success-modal-content">
+            <div class="success-icon">✓</div>
+            <h3 style="color: var(--college-navy); font-size: 1.8rem; margin-bottom: 0.5rem;" id="successTitle">Success!</h3>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;" id="successMessage">Your account has been created.</p>
+            <button class="btn-login" style="width: 100%;" id="successActionBtn">Continue</button>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- AOS Animation Library JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- EXTERNAL JS -->
+    <script src="app.js"></script>
+    
+    <!-- Minor inline script for mobile menu compatibility -->
+    <style>
+        @media (min-width: 901px) { .mobile-only { display: none !important; } }
+    </style>
+</body>
+</html>
