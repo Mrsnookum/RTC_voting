@@ -166,6 +166,23 @@
         .result-row.leader h4::after { content: '🏆'; margin-left: 6px; font-size: 1rem; }
 
         /* =========================================
+           SETTINGS SECTION STYLES (NEW)
+           ========================================= */
+        .settings-group { margin-bottom: 2rem; }
+        .settings-group label { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--college-navy); }
+        
+        /* Toggle Switch CSS */
+        .theme-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CBD5E1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--college-gold); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .btn-danger { background: var(--danger-red); color: white; padding: 0.8rem 2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; width: 100%; margin-top: 1rem; }
+        .btn-danger:hover { background: #DC2626; }
+
+        /* =========================================
            CUSTOM MODALS & TOASTS
            ========================================= */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,33,71,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(5px); }
@@ -475,10 +492,47 @@
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Your demographic data is locked for this election.</p>
                 </div>
             </div>
+            
+            <div class="card" style="max-width: 600px; margin: 2rem auto 0 auto; background: #F8FAFC;">
+                <h3 style="margin-bottom: 1rem; color: var(--college-navy); font-size: 1.1rem;">Security Overview</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem;">
+                    Your voting identity is authenticated locally on your device via AES-level tokenization. 
+                </p>
+                <div style="background: #E2E8F0; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: var(--text-main); word-break: break-all;">
+                    <strong style="color: var(--college-navy);">Session Key:</strong> <br>
+                    <span id="sessionKeyDisplay">Loading...</span>
+                </div>
+            </div>
         </section>
 
-        <!-- Placeholder Views -->
-        <section id="settings" class="view"><h1>System Settings</h1><p>Module loading...</p></section>
+        <!-- ==========================================
+             SETTINGS SECTION VIEW (NEW)
+             ========================================== -->
+        <section id="settings" class="view">
+            <div class="dashboard-header">
+                <h1>System Settings</h1>
+                <p style="color: var(--text-muted);">Manage your local portal preferences and active sessions.</p>
+            </div>
+
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <div class="settings-group">
+                    <label>
+                        <span><span style="font-size: 1.2rem; margin-right: 10px;">🌙</span> Dark Mode Toggle</span>
+                        <div class="theme-switch">
+                            <input type="checkbox" id="themeToggle" onclick="toggleTheme()">
+                            <span class="slider"></span>
+                        </div>
+                    </label>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; padding-left: 0.5rem;">Switch the portal interface to a darker, low-light optimized theme.</p>
+                </div>
+
+                <div class="settings-group" style="margin-top: 3rem;">
+                    <h3 style="color: var(--danger-red); font-size: 1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #FEE2E2;">Danger Zone</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Force quitting your session will wipe all local caches, tokens, and demographic selections from this device.</p>
+                    <button class="btn-danger" onclick="logout()">Force Terminate Session</button>
+                </div>
+            </div>
+        </section>
 
     </main>
 
